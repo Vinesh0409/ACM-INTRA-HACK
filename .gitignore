@@ -1,0 +1,3 @@
+test-extn/node_modules/
+test-extn/.vscode-test/
+*.vsix
