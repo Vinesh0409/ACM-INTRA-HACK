@@ -1,8 +1,9 @@
 const vscode = require("vscode");
+const {getCompatibleFiles} = require('./compatible-files.js')
 
 function startWatcher(analyzeDependency) {
     const watcher = vscode.workspace.createFileSystemWatcher(
-        "**/{package.json,package-lock.json,yarn.lock,pnpm-lock.yaml,requirements.txt,pyproject.toml,poetry.lock,Pipfile,Pipfile.lock}",
+        getCompatibleFiles()
     );
 
     let timer = null;

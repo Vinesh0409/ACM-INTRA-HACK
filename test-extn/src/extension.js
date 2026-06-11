@@ -1,6 +1,6 @@
 const vscode = require("vscode");
 const { startWatcher } = require("./dependency-watcher.js");
-const { getdependencies } = require("./parser.js");
+const { getdependencies } = require("./extracter.js");
 
 /**
  * @param {vscode.ExtensionContext} context
