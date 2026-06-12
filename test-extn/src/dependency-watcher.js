@@ -1,29 +1,42 @@
 const vscode = require("vscode");
+const {getCompatibleFiles} = require('./compatible-files.js')
 
-function startDependencyWatcher(onDependencyChange) {
-	const watcher = vscode.workspace.createFileSystemWatcher(
-		"**/{package.json,package-lock.json,yarn.lock,pnpm-lock.yaml,requirements.txt,pyproject.toml,poetry.lock,Pipfile,Pipfile.lock}",
-	);
+function startWatcher(analyzeDependency) {
+    const watcher = vscode.workspace.createFileSystemWatcher(
+        getCompatibleFiles()
+    );
 
-    watcher.onDidChange(() => {
-        console.log("dependency file changed");
-        onDependencyChange();
-    });
-    
-    watcher.onDidCreate(() => {
-        console.log("dependency file created");
-        onDependencyChange();
-    });
-    
-    watcher.onDidDelete(() => {
-        console.log("dependency file deleted");
-        onDependencyChange();
-    });
+    let timer = null;
 
+    const scheduleChange = () => {
+        if (timer) {
+            clearTimeout(timer);
+        }
+        timer = setTimeout(() => {
+            timer = null;
+            console.log("dependency file change (debounced)");
+            try {
+                onDependencyChange();
+            } catch (err) {
+                console.error("Error in onDependencyChange:", err);
+            }
+        }, 1000);
+    };
 
-    
-    
+    watcher.onDidChange(analyzeDependency);
+    watcher.onDidCreate(analyzeDependency);
+    watcher.onDidDelete(analyzeDependency);
+
+    const origDispose = watcher.dispose && watcher.dispose.bind(watcher);
+    watcher.dispose = () => {
+        if (timer) {
+            clearTimeout(timer);
+            timer = null;
+        }
+        if (origDispose) return origDispose();
+    };
+
     return watcher;
 }
 
-module.exports = {startDependencyWatcher};
+module.exports = { startWatcher };

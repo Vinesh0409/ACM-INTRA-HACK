@@ -1,29 +1,35 @@
-const vscode = require('vscode');
-const {startDependencyWatcher} = require('./dependency-watcher.js')
+const vscode = require("vscode");
+const { startWatcher } = require("./dependency-watcher.js");
+const { getdependencies } = require("./extracter.js");
 
 /**
  * @param {vscode.ExtensionContext} context
  */
-function activate(context) {
-
-
+async function activate(context) {
 	console.log('Congratulations, your extension "test-extn" is now active!');
-	
-	const watcher = startDependencyWatcher(()=>{
-		vscode.window.showInformationMessage('Analysing dependencies');
-	})
+	const dependency = await getdependencies();
+	console.log(dependency);
 
-	const disposable = vscode.commands.registerCommand('test-extn.helloWorld', function () {
-		vscode.window.showInformationMessage('Hello World from test extn!');
+	const watcher = startWatcher(async () => {
+		vscode.window.showInformationMessage("Analysing dependencies");
+		const dependency = await getdependencies();
+		console.log(dependency);
 	});
 
-	context.subscriptions.push(disposable,watcher);
+	const disposable = vscode.commands.registerCommand(
+		"test-extn.helloWorld",
+		function () {
+			vscode.window.showInformationMessage("Hello World from test extn!");
+		},
+	);
+
+	context.subscriptions.push(disposable, watcher);
 }
 
 // This method is called when your extension is deactivated
-function deactivate() {}
+function deactivate() { }
 
 module.exports = {
 	activate,
-	deactivate
-}
+	deactivate,
+};
