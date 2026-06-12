@@ -1,3 +1,13 @@
 test-extn/node_modules/
 test-extn/.vscode-test/
 *.vsix
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
