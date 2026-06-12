@@ -1,11 +1,18 @@
 const path = require("path");
 const vscode = require("vscode");
+const {getCompatibleFiles} = require("./compatible-files.js")
 
-
+const DEPENDENCY_FILES = {
+		node: ["package.json"],
+		python: ["requirements.txt", "pyproject.toml"],
+		java: ["pom.xml", "build.gradle"],
+		rust: ["Cargo.toml"],
+		go: ["go.mod"],
+	};
 
 const getdependencies = async () => {
     const files = await vscode.workspace.findFiles(
-        getCompatibleFiles()
+        getCompatibleFiles(),"**/{node_modules,venv,.venv,target,dist,build}/**"
     );
 
     if (files.length === 0) {

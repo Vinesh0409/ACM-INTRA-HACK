@@ -3,6 +3,7 @@ import os
 import requests
 from packaging import version
 from app.utils import SemverUtils
+from app.models import ScanRequest
 
 class DependencyService:
 
@@ -35,53 +36,50 @@ class DependencyService:
 class ScannerService:
 
     @staticmethod
-    def scan(project_path: str):
+    def scan(request: ScanRequest):
 
         print("SCAN STARTED")
+        print("Type:", request.type)
+        print("Path:", request.path)
 
-        dependencies = (
-            DependencyService.get_dependencies(
-                project_path
-            )
-        )
+        dependencies = {}
+        dev_dependencies = {}
+        if request.type == "node" and isinstance(request.content, dict):
+            dependencies = request.content.get("dependencies") or {}
+            dev_dependencies = request.content.get("devDependencies") or {}
 
-        print("DEPENDENCIES:", dependencies)
+        def process_dependencies(dep_dict):
+            report = []
+            for package, current in dep_dict.items():
+                print("PACKAGE:", package)
+                print("CURRENT:", current)
 
-        report = []
+                latest = NpmService.get_latest_version(
+                    package
+                )
 
-        for package, current in dependencies.items():
+                print("LATEST:", latest)
 
-            print("PACKAGE:", package)
-            print("CURRENT:", current)
-
-            latest = NpmService.get_latest_version(
-                package
-            )
-
-            print("LATEST:", latest)
-
-            status = VersionService.get_status(
-                current,
-                latest
-            )
-
-            risk = (
-                SemverUtils
-                .get_risk(
+                status = VersionService.get_status(
                     current,
                     latest
                 )
-            )
 
-            report.append({
-                "package": package,
-                "current": current,
-                "latest": latest,
-                "status": status
-            })
+                report.append({
+                    "package": package,
+                    "current": current,
+                    "latest": latest,
+                    "status": status
+                })
+            return report
+
+        dep_report = process_dependencies(dependencies)
+        dev_report = process_dependencies(dev_dependencies)
 
         return {
-            "dependencies": report
+            "path": request.path,
+            "dependencies": dep_report,
+            "devDependencies": dev_report
         }
 
            
@@ -110,12 +108,20 @@ class VersionService:
         current: str,
         latest: str
     ):
+        if not current or not latest:
+            return "unknown"
+        
+        current_clean = current.lstrip("^~>=< ")
+        latest_clean = latest.lstrip("^~>=< ")
 
-        current = current.replace("^", "")
-        current = current.replace("~", "")
+        current_clean = current_clean.replace("x", "0").replace("*", "0")
+        latest_clean = latest_clean.replace("x", "0").replace("*", "0")
 
-        if version.parse(current) < version.parse(latest):
-            return "outdated"
+        try:
+            if version.parse(current_clean) < version.parse(latest_clean):
+                return "outdated"
+        except Exception:
+            return "unknown"
 
         return "latest"
     

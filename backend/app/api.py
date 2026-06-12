@@ -8,6 +8,4 @@ async def scan_project(request: ScanRequest):
     print("REQUEST RECEIVED")
     print(request)
 
-    return ScannerService.scan(
-        request.project_path
-    )
+    return ScannerService.scan(request)

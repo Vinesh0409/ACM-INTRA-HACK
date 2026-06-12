@@ -1,4 +1,7 @@
 from pydantic import BaseModel
+from typing import Dict, Any
 
 class ScanRequest(BaseModel):
-    project_path: str
+    type: str
+    path: str
+    content: Dict[str, Any]
