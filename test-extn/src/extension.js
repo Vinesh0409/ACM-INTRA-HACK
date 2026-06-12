@@ -1,19 +1,22 @@
 const vscode = require("vscode");
 const { startWatcher } = require("./dependency-watcher.js");
-const { getdependencies } = require("./extracter.js");
+const {versionAnalyzer} = require('./version-analyzer.js')
+
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 async function activate(context) {
 	console.log('Congratulations, your extension "test-extn" is now active!');
-	const dependency = await getdependencies();
-	console.log(dependency);
+	vscode.window.showInformationMessage("Analysing dependencies");
+	await versionAnalyzer()
+	vscode.window.showInformationMessage("Analysed dependencies");
 
 	const watcher = startWatcher(async () => {
 		vscode.window.showInformationMessage("Analysing dependencies");
-		const dependency = await getdependencies();
-		console.log(dependency);
+		await versionAnalyzer()
+		vscode.window.showInformationMessage("Analysed dependencies");
+
 	});
 
 	const disposable = vscode.commands.registerCommand(
