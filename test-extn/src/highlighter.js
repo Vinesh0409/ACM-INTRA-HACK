@@ -76,15 +76,12 @@ async function highlight(res) {
 	}
 
 	diagnosticCollection.set(document.uri, diagnostics);
-	const editor = vscode.window.visibleTextEditors.find((e) => {
-		const docPath = path.normalize(e.document.uri.fsPath).toLowerCase();
-		const resPath = path.normalize(res.path).toLowerCase();
-		return docPath === resPath;
-	});
+	const editor = await vscode.window.showTextDocument(document, {
+    preserveFocus: true,
+    preview: false,
+});
 
-	if (editor) {
-		editor.setDecorations(deprecatedDecoration, decorationOptions);
-	}
+editor.setDecorations(deprecatedDecoration, decorationOptions);
 }
 
 

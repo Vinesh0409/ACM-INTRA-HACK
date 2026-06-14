@@ -2,6 +2,7 @@
   "name": "test-extn",
   "displayName": "test extn",
   "description": "",
+  "icon": "media/icon.svg",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.120.0"
@@ -15,13 +16,29 @@
   ],
   "main": "./src/extension.js",
   "contributes": {
-    "commands": [
-      {
+    "commands": [{
         "command": "test-extn.helloWorld",
         "title": "Hello World"
-      }
-    ]
-  },
+    }],
+    "viewsContainers": {
+        "activitybar": [
+            {
+                "id": "deptrack-sidebar",
+                "title": "DepTrack",
+                "icon": "media/icon.svg"
+            }
+        ]
+    },
+    "views": {
+        "deptrack-sidebar": [
+            {
+                "type": "webview",
+                "id": "deptrack.panel",
+                "name": "DepTrack"
+            }
+        ]
+    }
+},
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
