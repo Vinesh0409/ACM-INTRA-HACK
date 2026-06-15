@@ -1,5 +1,6 @@
 const vscode = require("vscode");
 const path = require("path");
+const {getChangelogs} = require("./versionChanges/getChangelogs.js")
 
 const deprecatedDecoration = vscode.window.createTextEditorDecorationType({
 	// backgroundColor: "rgba(245, 158, 11, 0.15)",
@@ -20,8 +21,7 @@ const diagnosticCollection =
 function waringRange(document, dependencyName) {
     if (!dependencyName || typeof dependencyName !== "string") {
         return null;
-    }
-    console.log(dependencyName);
+    };
     const escapedName = dependencyName.replace(
 		/[.*+?^${}()|[\]\\]/g,
 		"\\$&"
@@ -51,7 +51,8 @@ async function highlight(res) {
 		if (Array.isArray(res[dependency])) {
 			for (const dep of res[dependency]) {
 				if (dep.status === "latest") continue;
-				console.log(dep);
+				console.log(dep.repo_url)
+				await getChangelogs(dep.repo_url);
 				const range = waringRange(document, dep.package);
 
 				if (!range) continue;

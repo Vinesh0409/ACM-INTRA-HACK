@@ -16,7 +16,7 @@ function startWatcher(analyzeDependency) {
             timer = null;
             console.log("dependency file change (debounced)");
             try {
-                onDependencyChange();
+                analyzeDependency
             } catch (err) {
                 console.error("Error in onDependencyChange:", err);
             }
