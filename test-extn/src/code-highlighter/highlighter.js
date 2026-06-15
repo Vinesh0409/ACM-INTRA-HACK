@@ -1,6 +1,7 @@
 const vscode = require("vscode");
 const path = require("path");
-const {getChangelogs} = require("./versionChanges/getChangelogs.js")
+const { getChangelogs } = require("../versionChanges/getChangelogs.js");
+const { warningRange } = require("./getRange.js");
 
 const deprecatedDecoration = vscode.window.createTextEditorDecorationType({
 	// backgroundColor: "rgba(245, 158, 11, 0.15)",
@@ -18,27 +19,6 @@ const deprecatedDecoration = vscode.window.createTextEditorDecorationType({
 const diagnosticCollection =
 	vscode.languages.createDiagnosticCollection("test-extn");
 
-function waringRange(document, dependencyName) {
-    if (!dependencyName || typeof dependencyName !== "string") {
-        return null;
-    };
-    const escapedName = dependencyName.replace(
-		/[.*+?^${}()|[\]\\]/g,
-		"\\$&"
-	);
-	const regex = new RegExp(`"${escapedName}"\\s*:`);
-
-	for (let i = 0; i < document.lineCount; i++) {
-		const line = document.lineAt(i);
-
-		if (regex.test(line.text)) {
-			return line.range;
-		}
-	}
-
-	return null;
-}
-
 async function highlight(res) {
 	if (!res || !res.path) {
 		return;
@@ -46,14 +26,15 @@ async function highlight(res) {
 	const document = await vscode.workspace.openTextDocument(res.path);
 	const diagnostics = [];
 	const decorationOptions = [];
+
 	for (const dependency in res) {
 		if (dependency === "path") continue;
+
 		if (Array.isArray(res[dependency])) {
 			for (const dep of res[dependency]) {
 				if (dep.status === "latest") continue;
-				console.log(dep.repo_url)
-				await getChangelogs(dep.repo_url);
-				const range = waringRange(document, dep.package);
+				console.log(dep.repo_url);
+				const range = warningRange(document, dep.package);
 
 				if (!range) continue;
 
@@ -77,16 +58,13 @@ async function highlight(res) {
 	}
 
 	diagnosticCollection.set(document.uri, diagnostics);
-	const editor = vscode.window.visibleTextEditors.find((e) => {
-		const docPath = path.normalize(e.document.uri.fsPath).toLowerCase();
-		const resPath = path.normalize(res.path).toLowerCase();
-		return docPath === resPath;
+
+	const editor = await vscode.window.showTextDocument(document, {
+		preserveFocus: true,
+		preview: false,
 	});
 
-	if (editor) {
-		editor.setDecorations(deprecatedDecoration, decorationOptions);
-	}
+	editor.setDecorations(deprecatedDecoration, decorationOptions);
 }
 
-
-module.exports = { highlight }
+module.exports = { highlight };

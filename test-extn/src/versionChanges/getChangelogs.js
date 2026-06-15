@@ -13,10 +13,11 @@ const getChangelogs = async (repoUrl) =>{
                 version: release.tag_name,
                 title: release.name,
                 changelog: release.body,
-                publishedAt: release.published_at
+                publishedAt: release.published_at,
+                url:release.html_url
             }))
 
-        return releases
+        return releases;
         
     } catch (error) {
         console.log("no changelogs")

@@ -1,4 +1,4 @@
-const {highlight} = require("./highlighter.js")
+const {highlight} = require("./code-highlighter/highlighter.js")
 const { getdependencies } = require("./extracter.js");
 const axios = require("axios");
 
