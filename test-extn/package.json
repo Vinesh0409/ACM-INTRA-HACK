@@ -2,7 +2,7 @@
   "name": "test-extn",
   "displayName": "test extn",
   "description": "",
-  "icon": "media/icon.svg",
+  "icon": "media/icon.png",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.120.0"
@@ -23,9 +23,9 @@
     "viewsContainers": {
         "activitybar": [
             {
+                "icon": "media/icon.png",
                 "id": "deptrack-sidebar",
-                "title": "DepTrack",
-                "icon": "media/icon.svg"
+                "title": "DepTrack"
             }
         ]
     },
@@ -34,7 +34,8 @@
             {
                 "type": "webview",
                 "id": "deptrack.panel",
-                "name": "DepTrack"
+                "name": "DepTrack",
+                "icon": "media/icon.png"
             }
         ]
     }
