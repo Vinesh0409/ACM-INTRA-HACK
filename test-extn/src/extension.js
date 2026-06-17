@@ -1,7 +1,7 @@
 const vscode = require("vscode");
 const { startWatcher } = require("./dependency-watcher.js");
 const { versionAnalyzer } = require('./version-analyzer.js');
-const { DepTrackPanel } = require('./panel.js');
+const { DepTrackPanel } = require('./panel/index.js');
 
 async function activate(context) {
     console.log('Congratulations, your extension "test-extn" is now active!');
