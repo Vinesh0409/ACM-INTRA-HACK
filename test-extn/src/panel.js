@@ -1,17 +1,22 @@
+const vscode = require("vscode");
 const { versionAnalyzer } = require("./version-analyzer.js");
 
 class DepTrackPanel {
     constructor() {
         this._view = null;
+        this._results = [];
     }
 
     resolveWebviewView(webviewView) {
         this._view = webviewView;
         webviewView.webview.options = { enableScripts: true };
 
-        this.setLoading();
-
-        this.runScan();
+        if (this._results && this._results.length > 0) {
+            webviewView.webview.html = this.getHTML(this._results);
+        } else {
+            this.setLoading();
+            this.runScan();
+        }
 
         webviewView.webview.onDidReceiveMessage(async (msg) => {
             if (msg.command === "refresh") {
@@ -33,11 +38,23 @@ class DepTrackPanel {
         `;
     }
 
-    async runScan() {
-        const results = await versionAnalyzer();
+    updateResults(results) {
+        this._results = results || [];
         if (this._view) {
-            this._view.webview.html = this.getHTML(results || []);
+            this._view.webview.html = this.getHTML(this._results);
         }
+    }
+
+    async runScan() {
+        let results = [];
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Analysing dependencies...",
+            cancellable: false
+        }, async () => {
+            results = await versionAnalyzer();
+        });
+        this.updateResults(results);
     }
 
     getHTML(results) {

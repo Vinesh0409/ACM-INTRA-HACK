@@ -11,17 +11,27 @@ async function activate(context) {
         vscode.window.registerWebviewViewProvider("deptrack.panel", provider)
     );
 
-    vscode.window.showInformationMessage("Analysing dependencies");
-    await versionAnalyzer();
-    vscode.window.showInformationMessage("Analysed dependencies");
+    let initialResults = [];
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "Analysing dependencies...",
+        cancellable: false
+    }, async () => {
+        initialResults = await versionAnalyzer();
+    });
+    provider.updateResults(initialResults);
 
     const watcher = startWatcher(async () => {
-        vscode.window.showInformationMessage("Analysing dependencies");
-        await versionAnalyzer();
-        vscode.window.showInformationMessage("Analysed dependencies");
-        // panel bhi update karo
         provider.setLoading();
-        await provider.runScan();
+        let results = [];
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "Analysing dependencies...",
+            cancellable: false
+        }, async () => {
+            results = await versionAnalyzer();
+        });
+        provider.updateResults(results);
     });
 
     const disposable = vscode.commands.registerCommand(
