@@ -25,9 +25,9 @@ async function activate(context) {
     });
 
     const disposable = vscode.commands.registerCommand(
-        "test-extn.helloWorld",
+        "verdiff.scan",
         function () {
-            vscode.window.showInformationMessage("Hello World from test extn!");
+            vscode.window.showInformationMessage("Verdiff scanning...");
         },
     );
 

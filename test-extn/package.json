@@ -1,6 +1,6 @@
 {
-  "name": "test-extn",
-  "displayName": "test extn",
+  "name": "Verdiff",
+  "displayName": "Verdiff",
   "description": "",
   "icon": "media/icon.png",
   "version": "0.0.1",
@@ -17,25 +17,25 @@
   "main": "./src/extension.js",
   "contributes": {
     "commands": [{
-        "command": "test-extn.helloWorld",
-        "title": "Hello World"
+        "command": "verdiff.scan",
+        "title": "Verdiff: Scan Dependencies"
     }],
     "viewsContainers": {
         "activitybar": [
             {
-                "icon": "media/icon.png",
                 "id": "deptrack-sidebar",
-                "title": "DepTrack"
+                "title": "DepTrack",
+                "icon": "media/icon.png"
             }
         ]
     },
     "views": {
         "deptrack-sidebar": [
             {
+                "icon": "media/icon.png",
                 "type": "webview",
                 "id": "deptrack.panel",
-                "name": "DepTrack",
-                "icon": "media/icon.png"
+                "name": "DepTrack"
             }
         ]
     }

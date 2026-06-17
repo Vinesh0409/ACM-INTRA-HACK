@@ -1,5 +1,4 @@
 const vscode = require("vscode");
-const path = require("path");
 
 const deprecatedDecoration = vscode.window.createTextEditorDecorationType({
 	// backgroundColor: "rgba(245, 158, 11, 0.15)",
