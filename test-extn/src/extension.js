@@ -1,38 +1,39 @@
 const vscode = require("vscode");
 const { startWatcher } = require("./dependency-watcher.js");
-const {versionAnalyzer} = require('./version-analyzer.js')
+const { versionAnalyzer } = require('./version-analyzer.js');
+const { DepTrackPanel } = require('./panel.js');
 
-
-/**
- * @param {vscode.ExtensionContext} context
- */
 async function activate(context) {
-	console.log('Congratulations, your extension "test-extn" is now active!');
-	vscode.window.showInformationMessage("Analysing dependencies");
-	await versionAnalyzer()
-	vscode.window.showInformationMessage("Analysed dependencies");
+    console.log('Congratulations, your extension "test-extn" is now active!');
 
-	const watcher = startWatcher(async () => {
-		vscode.window.showInformationMessage("Analysing dependencies");
-		await versionAnalyzer()
-		vscode.window.showInformationMessage("Analysed dependencies");
+    const provider = new DepTrackPanel();
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider("deptrack.panel", provider)
+    );
 
-	});
+    vscode.window.showInformationMessage("Analysing dependencies");
+    await versionAnalyzer();
+    vscode.window.showInformationMessage("Analysed dependencies");
 
-	const disposable = vscode.commands.registerCommand(
-		"test-extn.helloWorld",
-		function () {
-			vscode.window.showInformationMessage("Hello World from test extn!");
-		},
-	);
+    const watcher = startWatcher(async () => {
+        vscode.window.showInformationMessage("Analysing dependencies");
+        await versionAnalyzer();
+        vscode.window.showInformationMessage("Analysed dependencies");
+        // panel bhi update karo
+        provider.setLoading();
+        await provider.runScan();
+    });
 
-	context.subscriptions.push(disposable, watcher);
+    const disposable = vscode.commands.registerCommand(
+        "verdiff.scan",
+        function () {
+            vscode.window.showInformationMessage("Verdiff scanning...");
+        },
+    );
+
+    context.subscriptions.push(disposable, watcher);
 }
 
-// This method is called when your extension is deactivated
-function deactivate() { }
+function deactivate() {}
 
-module.exports = {
-	activate,
-	deactivate,
-};
+module.exports = { activate, deactivate };

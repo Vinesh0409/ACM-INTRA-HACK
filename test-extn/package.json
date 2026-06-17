@@ -1,7 +1,8 @@
 {
-  "name": "test-extn",
-  "displayName": "test extn",
+  "name": "Verdiff",
+  "displayName": "Verdiff",
   "description": "",
+  "icon": "media/icon.png",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.120.0"
@@ -15,13 +16,30 @@
   ],
   "main": "./src/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "test-extn.helloWorld",
-        "title": "Hello World"
-      }
-    ]
-  },
+    "commands": [{
+        "command": "verdiff.scan",
+        "title": "Verdiff: Scan Dependencies"
+    }],
+    "viewsContainers": {
+        "activitybar": [
+            {
+                "id": "deptrack-sidebar",
+                "title": "DepTrack",
+                "icon": "media/icon.png"
+            }
+        ]
+    },
+    "views": {
+        "deptrack-sidebar": [
+            {
+                "icon": "media/icon.png",
+                "type": "webview",
+                "id": "deptrack.panel",
+                "name": "DepTrack"
+            }
+        ]
+    }
+},
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
