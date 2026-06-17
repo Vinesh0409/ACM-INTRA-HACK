@@ -1,4 +1,4 @@
-const {highlight} = require("./highlighter.js")
+const {highlight} = require("./code-highlighter/highlighter.js")
 const { getdependencies } = require("./extracter.js");
 const axios = require("axios");
 
@@ -16,6 +16,7 @@ const versionAnalyzer = async () => {
 	for (const res of results) {
 		highlight(res);
 	}
+	return results
 };
 
 module.exports = { versionAnalyzer };

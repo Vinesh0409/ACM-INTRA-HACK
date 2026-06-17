@@ -59,6 +59,9 @@ class ScannerService:
                     package
                 )
 
+                repo_url = latest.get("repo_url")
+                latest = latest.get("latest")
+
                 print("LATEST:", latest)
 
                 status = VersionService.get_status(
@@ -91,7 +94,8 @@ class ScannerService:
                 )
                 
 
-                report.append({
+                
+                entry = {
                     "package": package,
                     "current": current,
                     "latest": latest,
@@ -120,6 +124,10 @@ class ScannerService:
                         "priority": priority,
                         
                 })
+                }
+                if status == "outdated":
+                    entry["repo_url"] = repo_url
+                report.append(entry)
             return report
         
         dependency_tree = (
@@ -198,10 +206,12 @@ class ScannerService:
            
     
 class NpmService:
+
     @staticmethod
     def get_latest_version(
         package_name: str
-    ):
+    ) -> dict:
+
         url = (
             f"https://registry.npmjs.org/"
             f"{package_name}"
@@ -210,9 +220,24 @@ class NpmService:
         response = requests.get(url)
             
         if response.status_code != 200:
-            return None
+            return {"latest": None, "repo_url": None}
+
         data = response.json()
-        return data["dist-tags"]["latest"]
+
+        latest = data.get("dist-tags", {}).get("latest")
+
+        # Extract raw repository URL from the registry metadata
+        repo_url = None
+        repository = data.get("repository")
+        if isinstance(repository, dict):
+            repo_url = repository.get("url")
+        elif isinstance(repository, str):
+            repo_url = repository
+
+        return {
+            "latest": latest,
+            "repo_url": repo_url
+        }
     
 class VersionService:
 
