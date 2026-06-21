@@ -5,7 +5,11 @@ import subprocess
 from packaging import version
 from app.utils import SemverUtils
 from app.models import ScanRequest
+from app.ai_service import (
+    AIRecommendationService
+)
 import subprocess
+import csv
 
 class DependencyService:
 
@@ -83,14 +87,7 @@ class ScannerService:
                     current,
                     latest
                 )
-                recommendation = (
-                    RecommendationService
-                    .get_recommendation(
-                        status,
-                        risk,
-                        security_info["vulnerable"]
-                    )
-                )
+
                 priority = (
                     PriorityService
                     .calculate_priority(
@@ -98,10 +95,24 @@ class ScannerService:
                         security_info["vulnerable"]
                     )
                 )
+                recommendation = (
+                    AIRecommendationService
+                    .predict(
+                        risk,
+                        security_info["vulnerable"],
+                        security_info["severity"],
+                        security_info.get(
+                            "count",
+                            0
+                        ),
+                        priority
+                    )
+                )
+                
                 
 
                 
-                entry = {
+                package_data = ({
                     "package": package,
                     "current": current,
                     "latest": latest,
@@ -129,18 +140,23 @@ class ScannerService:
                             recommendation,
                         "priority": priority,
                         
-                }
-                if status == "outdated":
-                    entry["repo_url"] = repo_url
-                report.append(entry)
+                })
+                
+                
+                report.append(package_data)
+                DatasetService.save_row(package_data)
             return report
         
-        dependency_tree = (
-            DependencyTreeService
-            .get_tree(
-                request.path
+        dependency_tree = {}
+        if os.path.isdir(request.path):
+            dependency_tree = (
+                DependencyTreeService
+                .get_tree(
+                    request.path
+                )
             )
-        )
+        else:
+            print("Skipping dependency tree: invalid path:", request.path)
 
         dependency_graph = (
             DependencyGraphService
@@ -429,6 +445,9 @@ class DependencyGraphService:
 
         graph = {}
 
+        if not tree:
+            return graph
+
         dependencies = (
             tree.get(
                 "dependencies",
@@ -486,6 +505,10 @@ class DependencyTreeService:
 
         try:
 
+            if not os.path.isdir(project_path):
+                print("Invalid project path:", project_path)
+                return {}
+
             result = subprocess.run(
                 [
                     "npm.cmd",   # Windows
@@ -516,3 +539,59 @@ class DependencyTreeService:
 
             return {}
             
+class DatasetService:
+
+    OUTPUT_PATH = os.path.join("dataset", "recommendations.csv")
+
+    @staticmethod
+    def save_row(report):
+        try:
+            # The original code crashed with FileNotFoundError if the
+            # "dataset" directory didn't already exist. Create it on demand.
+            os.makedirs(os.path.dirname(DatasetService.OUTPUT_PATH), exist_ok=True)
+
+            file_exists = os.path.exists(DatasetService.OUTPUT_PATH)
+
+            with open(DatasetService.OUTPUT_PATH, "a", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file)
+                if not file_exists:
+                    writer.writerow(
+                        ["package", "current", "latest", "risk", "vulnerable", "severity", "vuln_count", "priority", "action"]
+                    )
+                writer.writerow(
+                    [   
+                        report["package"],
+                        report["current"],
+                        report["latest"],
+                        report["risk"],
+                        int(report["vulnerable"]),
+                        report["severity"],
+                        report["vulnerability_count"],
+                        report["priority"],
+                        report["recommendation"],
+                    ]
+                )
+        except Exception as e:
+            # A CSV write failure (disk full, permissions, etc.) shouldn't
+            # take down the whole scan -- log it and keep going.
+            print("DatasetService write error:", str(e))
+
+class RecommendationService:
+
+    @staticmethod
+    def get_recommendation(
+        status: str,
+        risk: str,
+        vulnerable: bool
+    ):
+
+        if vulnerable:
+            return "UPDATE IMMEDIATELY"
+
+        if risk == "HIGH":
+            return "REVIEW BEFORE UPDATE"
+
+        if status == "outdated":
+            return "UPDATE WHEN POSSIBLE"
+
+        return "NO ACTION REQUIRED"
