@@ -12,20 +12,19 @@ function startWatcher(analyzeDependency) {
         if (timer) {
             clearTimeout(timer);
         }
-        timer = setTimeout(() => {
+        timer = setTimeout(async () => {
             timer = null;
             console.log("dependency file change (debounced)");
             try {
-                analyzeDependency
+                await analyzeDependency();
             } catch (err) {
                 console.error("Error in onDependencyChange:", err);
             }
         }, 1000);
     };
-
-    watcher.onDidChange(analyzeDependency);
-    watcher.onDidCreate(analyzeDependency);
-    watcher.onDidDelete(analyzeDependency);
+    watcher.onDidChange(scheduleChange);
+    watcher.onDidCreate(scheduleChange);
+    watcher.onDidDelete(scheduleChange);
 
     const origDispose = watcher.dispose && watcher.dispose.bind(watcher);
     watcher.dispose = () => {

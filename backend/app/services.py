@@ -1,6 +1,7 @@
 import json 
 import os
 import requests
+import subprocess
 from packaging import version
 from app.utils import SemverUtils
 from app.models import ScanRequest
@@ -43,11 +44,16 @@ class ScannerService:
         print("Type:", request.type)
         print("Path:", request.path)
 
+        content = request.content
+
+
+
         dependencies = {}
         dev_dependencies = {}
-        if request.type == "node" and isinstance(request.content, dict):
-            dependencies = request.content.get("dependencies") or {}
-            dev_dependencies = request.content.get("devDependencies") or {}
+        if request.type == "node" and isinstance(content, dict):
+            dependencies = content.get("dependencies") or {}
+            dev_dependencies = content.get("devDependencies") or {}
+
 
         def process_dependencies(dep_dict):
             report = []
@@ -123,7 +129,6 @@ class ScannerService:
                             recommendation,
                         "priority": priority,
                         
-                })
                 }
                 if status == "outdated":
                     entry["repo_url"] = repo_url

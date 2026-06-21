@@ -5,3 +5,9 @@ class ScanRequest(BaseModel):
     type: str
     path: str
     content: Dict[str, Any]
+
+class GraphRequest(BaseModel):
+    path: str
+
+
+

@@ -16,7 +16,8 @@ const versionAnalyzer = async () => {
 	for (const res of results) {
 		highlight(res);
 	}
-	return results
+
+	return results;
 };
 
 module.exports = { versionAnalyzer };
